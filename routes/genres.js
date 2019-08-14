@@ -1,11 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const {Genre,validate} = require('../models/genre');
+const { Genre, validate } = require('../models/genre');
 const auth = require('../middlewares/auth');
 const isAdmin = require('../middlewares/admin');
+const asyncMiddleware = require('../middlewares/asyncErrorMiddleware');
 
-router.get('/', async (req, res) => {
-  try {
+router.get('/', asyncMiddleware(async(req, res) => {
+
     const genres = await Genre.find().sort('name');
     res.send(
       {
@@ -14,13 +15,10 @@ router.get('/', async (req, res) => {
         message: "generes get"
       }
     ).status(200);
-  }
-  catch (ex) {
-    console.log(ex);
-  }
-});
+ 
+}));
 
-router.post('/', auth,async (req, res) => {
+router.post('/', auth, asyncMiddleware(async (req, res) => {
   const { error } = validate(req.body);
   if (error) {
     return res.status(400).send(
@@ -39,10 +37,9 @@ router.post('/', auth,async (req, res) => {
     result: genre,
     message: "record added successfully in genre model"
   });
-});
+}));
 
-router.put('/:id', auth,async (req, res) => {
-  try {
+router.put('/:id', auth, asyncMiddleware(async (req, res) => {
     const { error } = validate(req.body);
     if (error) {
       return res.status(400).send({
@@ -70,18 +67,9 @@ router.put('/:id', auth,async (req, res) => {
         result: genre,
         message: "record successfully updated"
       });
+}));
 
-  } catch (ex) {
-    return res.status(500).send({
-      success: false,
-      error: 'Object id is not valid',
-      message: 'failed to update'
-    });
-    // console.log(ex.message);
-  }
-});
-
-router.delete('/:id', [auth,isAdmin],async (req, res) => {
+router.delete('/:id', [auth, isAdmin], asyncMiddleware(async (req, res) => {
   const genre = await Genre.findByIdAndRemove(req.params.id);
 
   if (!genre) {
@@ -98,14 +86,14 @@ router.delete('/:id', [auth,isAdmin],async (req, res) => {
     result: genre,
     message: 'document deleted successfully!'
   });
-});
+}));
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', asyncMiddleware(async (req, res) => {
   const genre = await Genre.findById(req.params.id);
 
   if (!genre) return res.status(404).send('The genre with the given ID was not found.');
 
   res.send(genre);
-});
+}));
 
 module.exports = router;
