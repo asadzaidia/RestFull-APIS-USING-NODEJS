@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const express = require('express');
 const Fawn = require('fawn'); //concurrency transactions
 const router = express.Router();
+const auth = require('../middlewares/auth');
 
 Fawn.init(mongoose);
 
